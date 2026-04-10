@@ -19,7 +19,7 @@ public sealed class TeamsNotifier : IDisposable
     /// <summary>
     /// Teams Incoming Webhook にイベント一覧を通知する
     /// </summary>
-    public async Task<bool> NotifyAsync(List<ConnpassEvent> events)
+    public async Task<bool> NotifyAsync(List<MsEventContent> events)
     {
         if (string.IsNullOrWhiteSpace(_webhookUrl))
         {
@@ -54,7 +54,7 @@ public sealed class TeamsNotifier : IDisposable
         return true;
     }
 
-    private static TeamsMessage BuildAdaptiveCardMessage(List<ConnpassEvent> events)
+    private static TeamsMessage BuildAdaptiveCardMessage(List<MsEventContent> events)
     {
         var body = new List<object>
         {
@@ -63,7 +63,7 @@ public sealed class TeamsNotifier : IDisposable
                 ["type"] = "TextBlock",
                 ["size"] = "Large",
                 ["weight"] = "Bolder",
-                ["text"] = $"📅 Microsoft 関連イベント ({events.Count}件)",
+                ["text"] = $"📅 Microsoft 公式イベント ({events.Count}件)",
                 ["wrap"] = true
             },
             new Dictionary<string, object>
@@ -78,9 +78,14 @@ public sealed class TeamsNotifier : IDisposable
         // 最大20件に制限（Adaptive Card のサイズ上限対策）
         foreach (var ev in events.Take(20))
         {
-            var startDate = DateTime.TryParse(ev.StartedAt, out var dt)
-                ? dt.ToString("yyyy/MM/dd (ddd) HH:mm")
-                : ev.StartedAt;
+            var startDate = ev.EventDates.StartDate?.ToOffset(TimeSpan.FromHours(9)).ToString("yyyy/MM/dd (ddd) HH:mm") ?? "未定";
+            var endDate = ev.EventDates.EndDate?.ToOffset(TimeSpan.FromHours(9)).ToString("HH:mm") ?? "";
+            var dateText = string.IsNullOrEmpty(endDate) ? startDate : $"{startDate} - {endDate}";
+            var locationText = ev.Format;
+            if (!string.IsNullOrEmpty(ev.Location.City) && ev.Location.City != "Digital")
+            {
+                locationText += $" / {ev.Location.City}";
+            }
 
             body.Add(new Dictionary<string, object>
             {
@@ -108,7 +113,7 @@ public sealed class TeamsNotifier : IDisposable
                                     new Dictionary<string, object>
                                     {
                                         ["type"] = "TextBlock",
-                                        ["text"] = $"🕐 {startDate}",
+                                        ["text"] = $"🕐 {dateText}",
                                         ["isSubtle"] = true,
                                         ["wrap"] = true
                                     }
@@ -123,7 +128,7 @@ public sealed class TeamsNotifier : IDisposable
                                     new Dictionary<string, object>
                                     {
                                         ["type"] = "TextBlock",
-                                        ["text"] = $"👥 {ev.Accepted}" + (ev.Limit.HasValue ? $"/{ev.Limit}" : ""),
+                                        ["text"] = $"📍 {locationText}",
                                         ["isSubtle"] = true,
                                         ["wrap"] = true
                                     }
@@ -140,7 +145,7 @@ public sealed class TeamsNotifier : IDisposable
                             {
                                 ["type"] = "Action.OpenUrl",
                                 ["title"] = "詳細を見る",
-                                ["url"] = ev.EventUrl
+                                ["url"] = ev.Action.Href
                             }
                         }
                     }

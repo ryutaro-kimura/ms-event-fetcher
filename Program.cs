@@ -1,33 +1,26 @@
 using System.Text.Json;
 using MsEventFetcher.Services;
 
-// 検索キーワード（Microsoft 関連）
-var keywords = new[]
-{
-    "Microsoft",
-    "Azure",
-    "Microsoft 365",
-    ".NET",
-    "GitHub Copilot"
-};
+Console.WriteLine("[INFO] Fetching Microsoft events from official catalog...");
 
-Console.WriteLine("[INFO] Fetching Microsoft-related events from connpass...");
-
-using var connpass = new ConnpassClient();
-var events = await connpass.FetchEventsAsync(keywords);
+using var client = new MsEventsClient();
+var events = await client.FetchEventsAsync();
 
 Console.WriteLine($"[INFO] Found {events.Count} upcoming events.");
 
 // コンソールにサマリ出力
 foreach (var ev in events)
 {
-    var startDate = DateTime.TryParse(ev.StartedAt, out var dt)
-        ? dt.ToString("yyyy/MM/dd (ddd) HH:mm")
-        : ev.StartedAt;
+    var startDate = ev.EventDates.StartDate?.ToOffset(TimeSpan.FromHours(9)).ToString("yyyy/MM/dd (ddd) HH:mm") ?? "未定";
+    var location = ev.Format;
+    if (!string.IsNullOrEmpty(ev.Location.City) && ev.Location.City != "Digital")
+    {
+        location += $" / {ev.Location.City}";
+    }
 
     Console.WriteLine($"  {startDate} | {ev.Title}");
-    Console.WriteLine($"    URL: {ev.EventUrl}");
-    Console.WriteLine($"    参加者: {ev.Accepted}" + (ev.Limit.HasValue ? $"/{ev.Limit}" : ""));
+    Console.WriteLine($"    URL: {ev.Action.Href}");
+    Console.WriteLine($"    形式: {location}");
     Console.WriteLine();
 }
 
