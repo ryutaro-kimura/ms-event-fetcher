@@ -9,39 +9,11 @@ GitHub Actions により毎週月曜 9:00 (JST) に自動実行されます。
 ## アーキテクチャ
 
 ```mermaid
-graph TB
-    subgraph "GitHub Actions"
-        GA[Workflow<br/>fetch-ms-events.yml]
-    end
-
-    subgraph "MsEventFetcher (.NET 8)"
-        Program[Program.cs<br/>エントリポイント]
-        Client[MsEventsClient<br/>イベント取得]
-        Notifier[TeamsNotifier<br/>Teams 通知]
-        Models[Models<br/>MsEvent / TeamsMessage]
-    end
-
-    subgraph "外部サービス"
-        API["Microsoft Events API<br/>(msonecloudapi)"]
-        Teams[Microsoft Teams<br/>Incoming Webhook]
-    end
-
-    subgraph "出力"
-        JSON[events.json]
-        Console[コンソール出力]
-        Artifact[GitHub Actions<br/>Artifact]
-    end
-
-    GA -->|実行| Program
-    Program --> Client
-    Program --> Notifier
-    Client --> Models
-    Notifier --> Models
-    Client -->|HTTP GET| API
-    Notifier -->|HTTP POST<br/>Adaptive Card| Teams
-    Program -->|書き出し| JSON
-    Program -->|サマリ表示| Console
-    GA -->|アップロード| Artifact
+graph LR
+    A[GitHub Actions] -->|実行| B[MsEventFetcher]
+    B -->|HTTP GET| C[Microsoft Events API]
+    B -->|JSON 保存| D[events.json]
+    B -->|Webhook POST| E[Microsoft Teams]
 ```
 
 ---
@@ -64,7 +36,7 @@ sequenceDiagram
     C->>API: GET /msonecloudapi/events/cards<br/>?filters=primary-language:japanese<br/>&locale=ja-jp&scenario=events
     API-->>C: JSON (cards[])
     C->>C: 未来のイベントのみ抽出<br/>開始日昇順でソート
-    C-->>P: List&lt;MsEventContent&gt;
+    C-->>P: List of MsEventContent
 
     P->>P: コンソールにサマリ出力
     P->>P: events.json へ書き出し
