@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using MsEventFetcher.Services;
 
@@ -26,7 +27,7 @@ foreach (var ev in events)
 
 // JSON ファイルに出力（GitHub Actions の Artifacts 用）
 var outputPath = Environment.GetEnvironmentVariable("EVENT_OUTPUT_PATH") ?? "events.json";
-var json = JsonSerializer.Serialize(events, new JsonSerializerOptions { WriteIndented = true });
+var json = JsonSerializer.Serialize(events, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 await File.WriteAllTextAsync(outputPath, json);
 Console.WriteLine($"[INFO] Events saved to {outputPath}");
 
