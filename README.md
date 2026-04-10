@@ -1,6 +1,6 @@
 # MsEventFetcher
 
-Microsoft 公式イベントカタログから **日本語で開催されるイベント** を自動取得し、JSON ファイルへの保存と Microsoft Teams への通知を行う .NET 8 コンソールアプリケーションです。
+Microsoft 公式イベントカタログから **日本語で開催されるイベント** を自動取得し、JSON ファイルへの保存と Microsoft Teams への通知を行う .NET 10 コンソールアプリケーションです。
 
 GitHub Actions により毎週月曜 9:00 (JST) に自動実行されます。
 
@@ -98,6 +98,10 @@ sequenceDiagram
 | `action.text` | `string` | アクションラベル |
 | `action.href` | `string` | イベント詳細・登録ページの URL |
 | `location.city` | `string?` | 開催都市 (オンラインの場合 `Digital`) |
+| `location.state` | `string?` | 開催地の州・都道府県 |
+| `location.country` | `string?` | 開催国 |
+| `eventDates.startDate` | `string?` | イベント開始日時 (ISO 8601) |
+| `eventDates.endDate` | `string?` | イベント終了日時 (ISO 8601) |
 | `location.state` | `string?` | 開催地域 |
 | `location.country` | `string?` | 開催国 |
 | `eventDates.startDate` | `DateTimeOffset` | 開始日時 (UTC) |
