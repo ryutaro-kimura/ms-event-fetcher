@@ -20,8 +20,8 @@ public sealed class MsEventsClient : IDisposable
     public async Task<List<MsEventContent>> FetchEventsAsync(string filter = "primary-language:japanese")
     {
         var url = string.IsNullOrEmpty(filter)
-            ? $"{BaseUrl}?onload=true&locale=ja-jp"
-            : $"{BaseUrl}?for={Uri.EscapeDataString(filter)}&locale=ja-jp";
+            ? $"{BaseUrl}?onload=true&locale=ja-jp&scenario=events"
+            : $"{BaseUrl}?filters={Uri.EscapeDataString(filter)}&locale=ja-jp&scenario=events";
 
         try
         {
