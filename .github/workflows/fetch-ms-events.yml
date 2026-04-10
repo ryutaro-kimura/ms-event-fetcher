@@ -1,0 +1,41 @@
+name: Fetch Microsoft Events
+
+on:
+  schedule:
+    # 毎週月曜 9:00 JST (= 0:00 UTC)
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch-events:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run event fetcher
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          EVENT_OUTPUT_PATH: ${{ runner.temp }}/events.json
+        run: dotnet run --configuration Release --no-build
+
+      - name: Upload events artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: events-${{ github.run_number }}
+          path: ${{ runner.temp }}/events.json
+          retention-days: 30
