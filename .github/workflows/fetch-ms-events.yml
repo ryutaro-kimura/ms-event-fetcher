@@ -5,6 +5,12 @@ on:
     # 毎週月曜 9:00 JST (= 0:00 UTC)
     - cron: '0 0 * * 1'
   workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - '**.cs'
+      - '**.csproj'
+      - '.github/workflows/**'
 
 permissions:
   contents: read
